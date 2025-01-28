@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSP Zoeken</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #f0f2f5;
+        }
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .result-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .card-field {
+            margin-bottom: 4px;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 12px;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1a1a1a;
+                color: #fff;
+            }
+            .result-card {
+                background: #2d2d2d;
+            }
+            .search-input {
+                background: #2d2d2d;
+                color: #fff;
+                border-color: #444;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="Zoek op E-nummer..." id="searchInput">
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Dit wordt vervangen door je echte data
+        const vspData = {
+            "vsp_lijst": [
+                // Je JSON data komt hier
+            ]
+        };
+
+        const searchInput = document.getElementById('searchInput');
+        const resultsDiv = document.getElementById('results');
+
+        function findMatches(searchTerm) {
+            if (!searchTerm) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            const normalizedSearch = searchTerm.replace('15E', '').replace('.', '');
+            
+            const matches = vspData.vsp_lijst.filter(item => {
+                const normalizedItem = item.E_Circuit.replace('15E', '').replace('.', '');
+                return normalizedItem.includes(normalizedSearch);
+            });
+
+            displayResults(matches);
+        }
+
+        function displayResults(matches) {
+            resultsDiv.innerHTML = matches.map(item => `
+                <div class="result-card">
+                    <img src="https://i.ibb.co/5jFg0jq/Schermafbeelding-2025-01-23-201422.png" class="thumbnail">
+                    <div class="card-title">${item.Machineonderdeel}</div>
+                    <div class="card-field">E-Nummer: ${item.E_Circuit}</div>
+                    <div class="card-field">MCC: ${item.Locatie}</div>
+                    <div class="card-field">Kast: ${item.Kast}</div>
+                    <div class="card-field">Lade: ${item.Lade}</div>
+                </div>
+            `).join('');
+        }
+
+        searchInput.addEventListener('input', (e) => findMatches(e.target.value));
+
+        // Laad de JSON data
+        fetch('vsp_lijst.json')
+            .then(response => response.json())
+            .then(data => {
+                vspData.vsp_lijst = data.vsp_lijst;
+            })
+            .catch(error => console.error('Error loading data:', error));
+    </script>
+</body>
+</html>
