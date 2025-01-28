@@ -11,6 +11,34 @@
             padding: 16px;
             background: #f0f2f5;
         }
+        .header {
+            max-width: 600px;
+            margin: 0 auto 16px;
+            text-align: center;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .machine-select {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .machine-button {
+            padding: 8px 16px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #6c757d;
+            color: white;
+        }
+        .machine-button.active {
+            background: #007bff;
+        }
         .search-container {
             max-width: 600px;
             margin: 0 auto;
@@ -57,25 +85,50 @@
                 color: #fff;
                 border-color: #444;
             }
+            .machine-button {
+                background: #495057;
+            }
+            .machine-button.active {
+                background: #0056b3;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1 class="title">VSP Zoeker</h1>
+        <div class="machine-select">
+            <button class="machine-button" onclick="selectMachine('pm1')" id="pm1Button">PM1</button>
+            <button class="machine-button active" onclick="selectMachine('pm2')" id="pm2Button">PM2</button>
+        </div>
+    </div>
     <div class="search-container">
         <input type="text" class="search-input" placeholder="Zoek op E-nummer..." id="searchInput">
         <div id="results"></div>
     </div>
 
     <script>
-        // Dit wordt vervangen door je echte data
+        let currentMachine = 'pm2';
         const vspData = {
-            "vsp_lijst": [
-                // Je JSON data komt hier
-            ]
+            pm1: { vsp_lijst: [] },
+            pm2: { vsp_lijst: [] }
         };
 
         const searchInput = document.getElementById('searchInput');
         const resultsDiv = document.getElementById('results');
+        const pm1Button = document.getElementById('pm1Button');
+        const pm2Button = document.getElementById('pm2Button');
+
+        function selectMachine(machine) {
+            currentMachine = machine;
+            
+            // Update buttons
+            pm1Button.classList.toggle('active', machine === 'pm1');
+            pm2Button.classList.toggle('active', machine === 'pm2');
+            
+            // Update zoekresultaten
+            findMatches(searchInput.value);
+        }
 
         function findMatches(searchTerm) {
             if (!searchTerm) {
@@ -85,7 +138,7 @@
 
             const normalizedSearch = searchTerm.replace('15E', '').replace('.', '');
             
-            const matches = vspData.vsp_lijst.filter(item => {
+            const matches = vspData[currentMachine].vsp_lijst.filter(item => {
                 const normalizedItem = item.E_Circuit.replace('15E', '').replace('.', '');
                 return normalizedItem.includes(normalizedSearch);
             });
@@ -108,13 +161,16 @@
 
         searchInput.addEventListener('input', (e) => findMatches(e.target.value));
 
-        // Laad de JSON data
-        fetch('vsp_lijst.json')
-            .then(response => response.json())
-            .then(data => {
-                vspData.vsp_lijst = data.vsp_lijst;
-            })
-            .catch(error => console.error('Error loading data:', error));
+        // Laad beide JSON bestanden
+        Promise.all([
+            fetch('pm1_vsp_lijst.json').then(response => response.json()),
+            fetch('pm2_vsp_lijst.json').then(response => response.json())
+        ]).then(([pm1Data, pm2Data]) => {
+            vspData.pm1 = pm1Data;
+            vspData.pm2 = pm2Data;
+            // Start met PM2 geselecteerd
+            findMatches(searchInput.value);
+        }).catch(error => console.error('Error loading data:', error));
     </script>
 </body>
 </html>
